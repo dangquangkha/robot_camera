@@ -18,6 +18,10 @@ NGUONG_NHAN_DIEN = 0.45
 DANGER_ZONE = [100, 100, 600, 500] 
 DELAY_CHUP_ANH = 3.0 # Thời gian chờ giữa các lần chụp (giây)
 
+# --- CẤU HÌNH HỆ THỐNG ---
+# ... các biến cũ ...
+THOI_GIAN_LUU_TRU = 30   # Xóa ảnh cũ hơn 30 giây
+CHU_KY_QUET = 5          # Cứ 5 giây kiểm tra thư mục 1 lần
 # Biến toàn cục
 shared_frame = None 
 shared_faces = [] 
@@ -103,12 +107,42 @@ def face_recognition_thread(database):
         except: pass
         time.sleep(0.1)
 
+def cleanup_thread():
+    global is_running
+    print(f"--- Đã kích hoạt chế độ tự xóa ảnh cũ hơn {THOI_GIAN_LUU_TRU} giây ---")
+    
+    while is_running:
+        try:
+            now = time.time()
+            # Kiểm tra xem thư mục có tồn tại không
+            if os.path.exists(THU_MUC_BAO_DONG):
+                # Duyệt qua từng file trong thư mục
+                for filename in os.listdir(THU_MUC_BAO_DONG):
+                    file_path = os.path.join(THU_MUC_BAO_DONG, filename)
+                    
+                    # Chỉ xử lý nếu là file (không xóa thư mục con)
+                    if os.path.isfile(file_path):
+                        # Lấy thời gian sửa đổi lần cuối của file
+                        file_age = os.path.getmtime(file_path)
+                        
+                        # Nếu file cũ hơn thời gian quy định -> Xóa
+                        if now - file_age > THOI_GIAN_LUU_TRU:
+                            os.remove(file_path)
+                            print(f"Da xoa anh cu: {filename}")
+                            
+        except Exception as e:
+            print(f"Loi khi don dep: {e}")
+            
+        # Nghỉ một lúc trước khi quét lại để không tốn tài nguyên CPU
+        time.sleep(CHU_KY_QUET)
+
 def main():
     global shared_frame, is_running, verified_tracks
 
     db = load_database()
     threading.Thread(target=face_recognition_thread, args=(db,), daemon=True).start()
     
+    threading.Thread(target=cleanup_thread, daemon=True).start()
     # Tạo thư mục lưu ảnh báo động
     if not os.path.exists(THU_MUC_BAO_DONG):
         os.makedirs(THU_MUC_BAO_DONG)
