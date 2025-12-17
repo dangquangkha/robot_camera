@@ -1,0 +1,282 @@
+#:kivy 2.3.0
+
+# --- MÀU SẮC ---
+#:set c_bg (0.05, 0.05, 0.1, 1)
+#:set c_primary (0, 0.8, 1, 1)
+#:set c_card (0.15, 0.15, 0.25, 1)
+#:set c_btn_press (0, 0.5, 0.7, 1)
+
+# --- STYLE NÚT BẤM ---
+<ModernButton@Button>:
+    background_normal: ''
+    background_color: (0,0,0,0)
+    canvas.before:
+        Color:
+            rgba: c_primary if self.state == 'normal' else c_btn_press
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [10,]
+    bold: True
+    color: (1,1,1,1)
+
+# --- STYLE CARD (Đã sửa lỗi missing attribute) ---
+<DashboardCard@ButtonBehavior+BoxLayout>:
+    title: ''   
+    desc: ''
+    orientation: 'vertical'
+    padding: 20
+    spacing: 10
+    canvas.before:
+        Color:
+            rgba: c_card
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [15,]
+    Label:
+        text: root.title
+        font_size: '20sp'
+        bold: True
+        color: c_primary
+    Label:
+        text: root.desc
+        font_size: '14sp'
+        color: (0.7, 0.7, 0.7, 1)
+
+ScreenManager:
+    HomeScreen:
+    SecurityScreen:
+    TutorScreen:
+
+# ================= HOME SCREEN =================
+<HomeScreen>:
+    name: 'home'
+    canvas.before:
+        Color:
+            rgba: c_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 40
+        spacing: 30
+        
+        Label:
+            text: "AI ROBOT CONTROL HUB"
+            font_size: '32sp'
+            bold: True
+            color: c_primary
+            size_hint_y: 0.2
+
+        GridLayout:
+            cols: 2
+            spacing: 20
+            
+            DashboardCard:
+                title: "AN NINH & CAMERA"
+                desc: "Giám sát, phát hiện người lạ"
+                on_release: app.root.current = 'security'
+
+            DashboardCard:
+                title: "GIA SƯ AI"
+                desc: "Học tiếng Anh cùng Robot"
+                on_release: app.root.current = 'tutor'
+
+# ================= SECURITY SCREEN =================
+<SecurityScreen>:
+    name: 'security'
+    canvas.before:
+        Color:
+            rgba: c_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+
+        # HEADER
+        BoxLayout:
+            size_hint_y: 0.08
+            Button:
+                text: "< HOME"
+                size_hint_x: 0.15
+                background_color: (0.2, 0.2, 0.2, 1)
+                on_release: app.root.current = 'home'
+            # --- [THÊM MỚI] NÚT BẬT/TẮT CAMERA ---
+            Button:
+                id: btn_cam_toggle
+                text: "TẮT CAMERA" # Mặc định là đang bật
+                size_hint_x: 0.2
+                background_color: (1, 0, 0, 1) # Màu đỏ (báo hiệu đang quay)
+                on_release: root.toggle_camera() 
+            # -------------------------------------
+            Label:
+                text: "CAMERA MONITOR & AI CHAT"
+                bold: True
+                color: c_primary
+
+        # BODY
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+
+            # 1. CAMERA (Đã sửa lỗi Line)
+            BoxLayout:
+                size_hint_x: 0.65
+                canvas.before:
+                    Color:
+                        rgba: (0,0,0,1)
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                    # Viền xanh
+                    Color:
+                        rgba: c_primary
+                    Line:
+                        rectangle: (self.x, self.y, self.width, self.height)
+                        width: 1.5
+                Image:
+                    id: img_camera
+                    allow_stretch: True
+                    keep_ratio: True
+
+            # 2. KHUNG CHAT
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.35
+                spacing: 10
+                padding: 5
+                
+                Label:
+                    text: "NHẬT KÝ HỘI THOẠI"
+                    size_hint_y: 0.05
+                    bold: True
+                
+                ScrollView:
+                    size_hint_y: 0.7
+                    canvas.before:
+                        Color:
+                            rgba: (0.1, 0.1, 0.15, 1)
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        id: lbl_chat_log
+                        text: "System: Sẵn sàng...\n"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        halign: 'left'
+                        valign: 'top'
+                        padding: [10, 10]
+                        markup: True
+
+                ModernButton:
+                    id: btn_talk
+                    text: "🎙️ BẤM ĐỂ NÓI"
+                    size_hint_y: 0.15
+                    background_color: (0, 1, 0, 1)
+                    on_release: root.start_intercom()
+
+                ModernButton:
+                    text: "📷 XEM LỊCH SỬ XÂM NHẬP"
+                    size_hint_y: 0.1
+                    background_color: (1, 0.5, 0, 1)
+                    on_release: root.show_gallery()
+
+<TutorScreen>:
+    name: 'tutor'
+    canvas.before:
+        Color:
+            rgba: c_bg
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        # --- HEADER & NÚT BACK ---
+        BoxLayout:
+            size_hint_y: 0.1
+            Button:
+                text: "HOME"
+                size_hint_x: 0.2
+                background_color: (0.3, 0.3, 0.3, 1)
+                on_release: root.go_back()
+            Label:
+                text: "ENGLISH TUTOR (A1 - C2)"
+                bold: True
+                font_size: '24sp'
+                color: c_primary
+
+        # --- THANH CHỌN LEVEL (GRID BUTTONS) ---
+        GridLayout:
+            cols: 6
+            size_hint_y: 0.1
+            spacing: 5
+            
+            Button:
+                text: "A1"
+                background_color: (0, 0.8, 0, 1) # Xanh lá
+                on_release: root.select_level("A1")
+            Button:
+                text: "A2"
+                background_color: (0.2, 0.8, 0, 1)
+                on_release: root.select_level("A2")
+            Button:
+                text: "B1"
+                background_color: (0.8, 0.8, 0, 1) # Vàng
+                on_release: root.select_level("B1")
+            Button:
+                text: "B2"
+                background_color: (1, 0.6, 0, 1) # Cam
+                on_release: root.select_level("B2")
+            Button:
+                text: "C1"
+                background_color: (1, 0, 0, 1) # Đỏ
+                on_release: root.select_level("C1")
+            Button:
+                text: "C2"
+                background_color: (0.5, 0, 0.5, 1) # Tím
+                on_release: root.select_level("C2")
+
+        # --- KHUNG HIỂN THỊ CHAT ---
+        BoxLayout:
+            size_hint_y: 0.6
+            canvas.before:
+                Color:
+                    rgba: (0.1, 0.1, 0.15, 1)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [15,]
+            
+            ScrollView:
+                padding: 10
+                Label:
+                    id: lbl_tutor_log
+                    text: "Hãy chọn cấp độ để bắt đầu...\n"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+                    halign: 'left'
+                    valign: 'top'
+                    markup: True
+                    font_size: '18sp'
+                    padding: [20, 20]
+
+        # --- NÚT BẤM NÓI ---
+        ModernButton:
+            text: "🎙️ BẤM ĐỂ TRÒ CHUYỆN"
+            size_hint_y: 0.2
+            background_color: c_primary
+            on_release: root.start_voice_chat()

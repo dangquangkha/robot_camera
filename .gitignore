@@ -1,0 +1,94 @@
+# ===========================
+# 1. MÔI TRƯỜNG ẢO (Virtual Environments)
+# ===========================
+# Rất quan trọng: Không bao giờ up thư mục này lên git
+venv/
+env/
+.env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+
+# ===========================
+# 2. PYTHON CACHE & LOGS
+# ===========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+*.log.*
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ===========================
+# 3. FILE CẤU HÌNH IDE (Editor)
+# ===========================
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+
+# ===========================
+# 4. DỮ LIỆU RIÊNG TƯ & DATABASE CỦA DỰ ÁN
+# ===========================
+# Dữ liệu khuôn mặt gia đình (Tuyệt đối không up)
+local_family_data/
+# Ảnh cảnh báo xâm nhập
+security_alerts/
+# File database SQLite (nếu có)
+*.db
+*.sqlite3
+# File âm thanh sinh ra khi Robot nói
+response_voice.mp3
+
+# ===========================
+# 5. MODEL AI & FILE NẶNG (Tránh lỗi giới hạn 100MB của Github)
+# ===========================
+# Các file weights của YOLO, PyTorch, TensorFlow
+*.pt
+*.pth
+*.h5
+*.hdf5
+*.onnx
+*.tflite
+yolov8n.pt
+yolov8n-pose.pt
+# Thư mục chứa weights của DeepFace (thường nằm trong home user nhưng chặn cho chắc)
+.deepface/
+
+# ===========================
+# 6. BẢO MẬT (API KEY)
+# ===========================
+# Chứa OpenAI API Key hoặc mật khẩu DB
+.env
+.env.local
+config_secret.py
+api_keys.txt
+
+# ===========================
+# 7. HỆ ĐIỀU HÀNH
+# ===========================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===========================
+# 8. BUILD & DISTRIBUTION
+# ===========================
+dist/
+build/
+*.egg-info/
+

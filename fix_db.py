@@ -1,6 +1,6 @@
 import mysql.connector
 
-# Thông tin Database của bạn (Tôi đã điền sẵn từ file bạn gửi)
+# Cấu hình Database y hệt như trong file robot của bạn
 DB_CONFIG = {
     'host': 'lmag6s0zwmcswp5w.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
     'user': 'iocpivuiapovtydo',
@@ -10,31 +10,31 @@ DB_CONFIG = {
 }
 
 def fix_database():
-    print("⏳ Đang kết nối JawsDB để sửa lỗi...")
+    print("⏳ Đang kết nối tới Database trên Cloud...")
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
+
+        # 1. Xóa bảng cũ (Bảng gây lỗi)
+        print("🗑️  Đang xóa bảng 'family_members' cũ (sai cấu trúc)...")
+        cursor.execute("DROP TABLE IF EXISTS family_members")
         
-        # Cách 1: Xóa bảng cũ đi tạo lại (Nhanh nhất, nhưng mất dữ liệu lịch sử cũ)
-        print("1. Đang xóa bảng cũ 'intrusion_logs'...")
-        cursor.execute("DROP TABLE IF EXISTS intrusion_logs")
-        
-        print("2. Đang tạo lại bảng mới với cấu trúc đúng...")
-        # Tạo lại bảng với đầy đủ cột image_path
+        # 2. Tạo lại bảng mới (Đúng cấu trúc chứa ảnh)
+        print("🔨 Đang tạo lại bảng 'family_members' mới...")
         cursor.execute("""
-            CREATE TABLE intrusion_logs (
+            CREATE TABLE family_members (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                count_people INT,
-                image_path VARCHAR(255)
+                name VARCHAR(100) NOT NULL,
+                image_path VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
         conn.commit()
         cursor.close()
         conn.close()
-        print("✅ THÀNH CÔNG! Database đã có cột 'image_path'.")
-        print("👉 Bây giờ bạn có thể chạy lại robot_security_final.py")
+        print("✅ THÀNH CÔNG! Database đã được sửa chữa.")
+        print("👉 Bây giờ bạn hãy dùng App Mobile để đăng ký lại khuôn mặt người nhà nhé.")
         
     except Exception as e:
         print(f"❌ Lỗi: {e}")
