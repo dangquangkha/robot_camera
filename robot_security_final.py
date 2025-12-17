@@ -62,8 +62,7 @@ def load_faces_from_cloud():
         print("⚠️ Robot đang chạy chế độ OFFLINE (Chỉ nhận diện được người đã lưu cache cũ nếu có)")
     return database
 
-<<<<<<< Updated upstream
-=======
+
 # =========================================================================
 # PHẦN 2: ĐẨY BÁO ĐỘNG LÊN CLOUD (Để App Mobile nhận được)
 # =========================================================================
@@ -91,7 +90,6 @@ def push_alert_to_cloud(count_people, image_filename):
 # PHẦN 3: CÁC HÀM XỬ LÝ AI & LOGIC
 # =========================================================================
 
->>>>>>> Stashed changes
 def check_overlap(box_body, box_face):
     """Kiểm tra xem khuôn mặt nhận diện được có thuộc về người đang đi không"""
     fx, fy, fw, fh = box_face

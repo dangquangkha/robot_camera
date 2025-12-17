@@ -155,11 +155,31 @@ class SecuritySystem:
             time.sleep(0.1)
 
     def camera_loop(self):
-        """Vòng lặp Camera chính (Tích hợp YOLO + Vẽ hình)"""
-        print("--- [CAMERA] Đang mở Camera... ---")
-        cap = cv2.VideoCapture(0)
-        cap.set(3, 1280)
-        cap.set(4, 720)
+        """Vòng lặp Camera chính"""
+        print("--- [CAMERA] Đang mở Camera Imou... ---")
+        
+        # --- CẤU HÌNH CAMERA ---
+        imou_pass = "KHAi2692004" 
+        
+        # ==> HÃY THỬ ĐỔI IP NẾU .228 KHÔNG ĐƯỢC
+        imou_ip = "192.168.1.228" # Nếu lỗi, hãy thử đổi thành "192.168.1.108"
+        
+        rtsp_url = f"rtsp://admin:{imou_pass}@{imou_ip}:554/cam/realmonitor?channel=1&subtype=1"
+
+        # --- [THÊM MỚI] Ép OpenCV dùng TCP để kết nối ổn định hơn ---
+        os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
+
+        cap = cv2.VideoCapture(rtsp_url)
+        
+        # Kiểm tra ngay lập tức xem có mở được không
+        if not cap.isOpened():
+            print(f"❌ LỖI NGHIÊM TRỌNG: Không thể mở RTSP URL: {rtsp_url}")
+            print("👉 Gợi ý: Kiểm tra lại IP (có thể là .108?) hoặc tắt 'Mã hóa hình ảnh' trên App.")
+        else:
+            print("✅ Đã kết nối thành công với Camera!")
+
+        # ... (Phần code while loop bên dưới giữ nguyên)
+        # ---------------------------------------------
 
         # Chờ load model xong nếu chưa xong
         while self.model_yolo is None and self.is_running:
@@ -169,8 +189,12 @@ class SecuritySystem:
         while self.is_running:
             success, img = cap.read()
             if not success: 
-                print("Không đọc được Camera!")
-                break
+                print("❌ Mất kết nối Camera! Đang thử kết nối lại...")
+                time.sleep(2)
+                cap = cv2.VideoCapture(rtsp_url) # Thử kết nối lại
+                continue
+            
+            # ... (Phần code xử lý bên dưới giữ nguyên) ...
             
             # --- YOLO TRACKING ---
             results = self.model_yolo.track(img, persist=True, verbose=False, classes=[0])
