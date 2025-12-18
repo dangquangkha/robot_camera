@@ -33,30 +33,45 @@ class TutorScreen(Screen):
 
     def start_voice_chat(self):
         """Bấm nút 'Nói'"""
-        if self.is_listening: return
-        threading.Thread(target=self._process_voice).start()
+        if self.is_listening: 
+            # Nếu đang nghe mà bấm lại thì coi như lệnh Dừng
+            self.is_listening = False
+            self.update_log("System: Đã tắt chế độ nghe liên tục.", "FF0000")
+            return
+            
+        threading.Thread(target=self._process_voice, daemon=True).start()
 
     def _process_voice(self):
         self.is_listening = True
-        self.update_log("Mic: Đang nghe...", "AAAAAA")
+        self.update_log("Mic: Đang nghe liên tục (Bấm lại nút Nói để dừng)...", "00FFFF")
         
-        user_text = self.voice_sys.listen()
-        if not user_text:
-            self.update_log("Mic: Không nghe rõ.", "FF0000")
-            self.is_listening = False
-            return
-
-        self.update_log(f"You: {user_text}", "FFFFFF")
-
-        # --- ĐIỂM QUAN TRỌNG NHẤT ---
-        # Lấy prompt cấu hình A1-C2 từ TutorBrain nạp vào OpenAI
         system_prompt = self.brain.get_prompt() 
-        
-        reply = self.voice_sys.ask_gpt(user_text, system_prompt)
-        
-        self.update_log(f"Tutor: {reply}", "00FF00")
-        self.voice_sys.text_to_speech(reply)
-        self.is_listening = False
+
+        while self.is_listening:
+            user_text = self.voice_sys.listen()
+            
+            if not user_text:
+                continue # Nếu không nghe thấy gì, quay lại nghe tiếp
+
+            self.update_log(f"You: {user_text}", "FFFFFF")
+
+            # Kiểm tra từ khóa dừng lại
+            stop_keywords = ["dừng lại", "stop", "kết thúc", "hẹn gặp lại"]
+            if any(word in user_text.lower() for word in stop_keywords):
+                self.update_log("System: Tạm biệt!", "FF0000")
+                self.voice_sys.text_to_speech("Goodbye! See you later.")
+                self.is_listening = False
+                break
+
+            # AI trả lời
+            reply = self.voice_sys.ask_gpt(user_text, system_prompt)
+            self.update_log(f"Tutor: {reply}", "00FF00")
+            
+            # Phát âm thanh (Lưu ý: hàm text_to_speech trong chat_logic.py của bạn đang block luồng 
+            # cho đến khi nói xong, điều này vô tình giúp AI không nghe đúng giọng của chính nó)
+            self.voice_sys.text_to_speech(reply)
+            
+            # Sau khi nói xong, tự động quay lại đầu vòng lặp để nghe tiếp
 
     def update_log(self, text, color="FFFFFF"):
         # Cập nhật giao diện an toàn từ luồng phụ

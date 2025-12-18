@@ -28,7 +28,7 @@ class VoiceAssistant:
             self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
             try:
                 # Nghe tối đa 5 giây
-                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=5)
+                audio = self.recognizer.listen(source, timeout=55, phrase_time_limit=150)
                 text = self.recognizer.recognize_google(audio, language="vi-VN")
                 return text
             except sr.WaitTimeoutError:
