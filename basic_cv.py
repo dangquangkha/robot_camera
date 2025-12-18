@@ -1,6 +1,6 @@
 import cv2
 
-img = cv2.imread(r"D:\AI_VoiceChat\API\robot_camera\family_images\mtp.png")
+img = cv2.imread('mtp.png')
 print(img.shape)
 cv2.imshow("khai_handsome",img)
 

@@ -166,10 +166,12 @@ class SecuritySystem:
         
         rtsp_url = f"rtsp://admin:{imou_pass}@{imou_ip}:554/cam/realmonitor?channel=1&subtype=1"
 
-        # --- [THÊM MỚI] Ép OpenCV dùng TCP để kết nối ổn định hơn ---
-        os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
-
-        cap = cv2.VideoCapture(rtsp_url)
+        # Cấu hình FFMPEG để ưu tiên TCP và giảm thời gian timeout chờ đợi
+        os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|timeout;5000000" 
+        
+        cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+        # Giới hạn bộ đệm để giảm độ trễ (latency)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         
         # Kiểm tra ngay lập tức xem có mở được không
         if not cap.isOpened():
