@@ -1,9 +1,12 @@
-import threading
+from kivy.config import Config
+# 1. Cấu hình bàn phím ảo cho màn hình cảm ứng
+Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
+# Import Models
+import threading
 from kivy.lang import Builder
 from kivy.core.window import Window
 
-# Import Models
 from models.security_logic import SecuritySystem
 from models.chat_logic import VoiceAssistant
 
@@ -12,6 +15,7 @@ from models.chat_logic import VoiceAssistant
 from controllers.home_controller import HomeScreen
 from controllers.security_controller import SecurityScreen
 from controllers.tutor_controller import TutorScreen
+
 
 class AiHomeApp(App):
     def build(self):
@@ -30,5 +34,5 @@ class AiHomeApp(App):
         self.security_sys.stop()
 
 if __name__ == '__main__':
-    Window.size = (1100, 700) 
+    Window.fullscreen = 'auto' 
     AiHomeApp().run()

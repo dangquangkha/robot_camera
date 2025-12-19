@@ -347,3 +347,31 @@ class SecuritySystem:
         todays = [f for f in all_files if today_str in f]
         todays.sort(key=os.path.getmtime, reverse=True) # Mới nhất lên đầu
         return len(todays), todays
+    
+    # Trong file models/security_logic.py
+
+    def upload_new_member(self, name, frame):
+        """Lưu ảnh tạm và gửi lên server để đăng ký người nhà"""
+        try:
+            img_path = "temp_register.jpg"
+            cv2.imwrite(img_path, frame)
+            
+            with open(img_path, "rb") as f:
+                # Sử dụng UPLOAD_URL đã định nghĩa ở đầu file
+                response = requests.post(f"{BASE_URL}/add_member", 
+                                         data={"name": name}, 
+                                         files={"image": f}, 
+                                         timeout=15)
+            return response.json()
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def fetch_server_logs(self):
+        """Lấy danh sách log xâm nhập từ server Heroku"""
+        try:
+            response = requests.get(f"{BASE_URL}/get_logs", timeout=10)
+            if response.status_code == 200:
+                return response.json()
+            return []
+        except:
+            return []

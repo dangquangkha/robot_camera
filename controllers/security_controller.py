@@ -202,3 +202,29 @@ class SecurityScreen(Screen):
         
         btn_close.bind(on_press=popup.dismiss)
         popup.open()
+    
+    def register_member(self):
+        """Hàm đăng ký tối ưu cho cảm ứng"""
+        name = self.ids.txt_member_name.text.strip()
+        
+        # Nếu không gõ tên, tự đặt tên theo ID ngẫu nhiên hoặc thời gian
+        if not name:
+            from datetime import datetime
+            name = f"User_{datetime.now().strftime('%H%M%S')}"
+            self.update_chat_log(f"Hệ thống: Tự động đặt tên là {name}")
+
+        frame = self.security_sys.get_frame() # Lấy frame từ logic
+        if frame is not None:
+            # Vô hiệu hóa nút để tránh bấm liên tục (Double tap)
+            self.ids.btn_register.disabled = True
+            
+            def run_upload():
+                res = self.security_sys.upload_new_member(name, frame)
+                # Sau khi xong thì mở lại nút
+                self.ids.btn_register.disabled = False
+                if res.get("status") == "success":
+                    self.update_chat_log(f"Thành công: Đã thêm {name}", "00FF00")
+                else:
+                    self.update_chat_log(f"Lỗi: {res.get('message')}", "FF0000")
+            
+            threading.Thread(target=run_upload, daemon=True).start()

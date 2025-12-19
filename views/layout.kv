@@ -84,6 +84,13 @@ ScreenManager:
                 title: "GIA SƯ AI"
                 desc: "Học tiếng Anh cùng Robot"
                 on_release: app.root.current = 'tutor'
+        # --- THÊM NÚT THOÁT Ở ĐÂY ---
+        ModernButton:
+            text: "EXIT APP"
+            size_hint: (0.3, 0.1)  # Điều chỉnh kích thước nút
+            pos_hint: {'center_x': 0.5} # Căn giữa nút
+            background_color: (1, 0, 0, 1) # Màu đỏ nổi bật
+            on_release: root.quit_app() # Gọi hàm quit_app trong home_controller.py
 
 # ================= SECURITY SCREEN =================
 <SecurityScreen>:
@@ -183,6 +190,38 @@ ScreenManager:
                     size_hint_y: 0.15
                     background_color: (0, 1, 0, 1)
                     on_release: root.start_intercom()
+
+                # --- PHẦN THÊM MỚI: ĐĂNG KÝ NGƯỜI NHÀ ---
+                # Trong phần Đăng ký người nhà của SecurityScreen
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: 0.25  # Tăng diện tích khu vực này để dễ chạm
+                    spacing: 10
+                    
+                    # Trong file views/layout.kv
+                    TextInput:
+                        id: txt_member_name
+                        hint_text: "Chạm vào đây để nhập tên..."
+                        multiline: False
+                        font_size: '20sp'
+                        size_hint_y: 0.4
+                        input_type: 'text'
+                        # Thêm dòng này để hỗ trợ tốt hơn cho cảm ứng
+                        keyboard_suggestions: True
+
+                    BoxLayout:
+                        size_hint_y: 0.6
+                        spacing: 10
+                        ModernButton:
+                            text: "XÓA CHỮ"
+                            background_color: (0.7, 0.7, 0.7, 1)
+                            on_release: txt_member_name.text = "" # Nút xóa nhanh bằng tay
+                        
+                        ModernButton:
+                            id: btn_register
+                            text: "📸 CHỤP & ĐĂNG KÝ"
+                            background_color: (0, 0.8, 0, 1)
+                            on_release: root.register_member()
 
                 ModernButton:
                     text: "📷 XEM LỊCH SỬ XÂM NHẬP"
