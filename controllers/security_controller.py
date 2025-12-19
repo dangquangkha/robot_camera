@@ -85,9 +85,13 @@ class SecurityScreen(Screen):
     # ---------------------------------------------
 
     def update_video_feed(self, dt):
-        frame = self.security_sys.get_frame()
+        frame = self.security_sys.get_frame() # Lấy frame gốc từ logic
         if frame is not None:
-            buffer = cv2.flip(frame, 0).tobytes()
+            # --- TRẠNG THÁI MẶC ĐỊNH (0 ĐỘ) ---
+            # Chuyển trực tiếp frame sang tobytes mà không qua flip hay rotate
+            buffer = frame.tobytes() 
+            
+            # Lưu ý: size=(width, height) tương ứng với shape[1] và shape[0]
             texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
             self.ids.img_camera.texture = texture
