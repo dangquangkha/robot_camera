@@ -2,6 +2,17 @@ from kivy.config import Config
 # 1. Cấu hình bàn phím ảo cho màn hình cảm ứng
 Config.set('kivy', 'keyboard_mode', 'systemanddock')
 from kivy.app import App
+import sys
+# --- THÊM ĐOẠN NÀY VÀO ĐẦU FILE (TRƯỚC TẤT CẢ CÁC IMPORT KIVY) ---
+if sys.platform == 'win32':
+    import ctypes
+    # Ép ứng dụng chạy đúng độ phân giải thực, không bị Windows tự phóng to
+    ctypes.windll.shcore.SetProcessDpiAwareness(1) 
+
+from kivy.config import Config
+# Tắt khả năng thay đổi kích thước thủ công và ép full màn hình từ cấu hình
+Config.set('graphics', 'resizable', '0')
+Config.set('graphics', 'fullscreen', 'auto')
 # Import Models
 import threading
 from kivy.lang import Builder
@@ -34,5 +45,4 @@ class AiHomeApp(App):
         self.security_sys.stop()
 
 if __name__ == '__main__':
-    Window.fullscreen = 'auto' 
     AiHomeApp().run()
