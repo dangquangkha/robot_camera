@@ -88,7 +88,7 @@ class SecurityScreen(Screen):
         frame = self.security_sys.get_frame()
         if frame is not None:
             # Lật ảnh dọc (flip 0) để khớp với texture coords của Kivy
-            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
             buffer = cv2.flip(frame, 0).tobytes()
             texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
