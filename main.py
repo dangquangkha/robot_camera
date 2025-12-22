@@ -26,7 +26,7 @@ from models.chat_logic import VoiceAssistant
 from controllers.home_controller import HomeScreen
 from controllers.security_controller import SecurityScreen
 from controllers.tutor_controller import TutorScreen
-
+from controllers.elderly_controller import ElderlyScreen
 
 class AiHomeApp(App):
     def build(self):

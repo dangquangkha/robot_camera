@@ -20,29 +20,38 @@
     bold: True
     color: (1,1,1,1)
 
-# --- STYLE CARD (Đã sửa lỗi missing attribute) ---
+# --- STYLE CARD (Đã nâng cấp để có thể đổi màu) ---
 <DashboardCard@ButtonBehavior+BoxLayout>:
     title: ''   
     desc: ''
+    # THÊM DÒNG NÀY: Thiết lập giá trị mặc định là màu c_card cũ
+    card_color: (0.15, 0.15, 0.25, 1) 
+    
     orientation: 'vertical'
     padding: 20
     spacing: 10
     canvas.before:
         Color:
-            rgba: c_card
+            # SỬA DÒNG NÀY: Thay c_card bằng self.card_color
+            rgba: self.card_color
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [15,]
+            
+    # Các phần Label bên dưới giữ nguyên không đổi...
     Label:
         text: root.title
-        font_size: '20sp'
+        font_size: '22sp'
         bold: True
         color: c_primary
+        size_hint_y: 0.3
     Label:
         text: root.desc
         font_size: '14sp'
         color: (0.7, 0.7, 0.7, 1)
+        size_hint_y: 0.7
+        halign: 'center'
 
 ScreenManager:
     HomeScreen:
@@ -84,13 +93,19 @@ ScreenManager:
                 title: "GIA SƯ AI"
                 desc: "Học tiếng Anh cùng Robot"
                 on_release: app.root.current = 'tutor'
-        # --- THÊM NÚT THOÁT Ở ĐÂY ---
-        ModernButton:
-            text: "EXIT APP"
-            size_hint: (0.3, 0.1)  # Điều chỉnh kích thước nút
-            pos_hint: {'center_x': 0.5} # Căn giữa nút
-            background_color: (1, 0, 0, 1) # Màu đỏ nổi bật
-            on_release: root.quit_app() # Gọi hàm quit_app trong home_controller.py
+            
+            DashboardCard:
+                title: "TÂM SỰ NGƯỜI GIÀ"
+                desc: "Trò chuyện, hỏi thăm sức khỏe"
+                on_release: app.root.current = 'elderly'
+
+            # --- NÚT THOÁT ĐÃ CHUYỂN THÀNH DASHBOARDCARD ---
+            DashboardCard:
+                title: "THOÁT ỨNG DỤNG"
+                desc: "Đóng hệ thống an toàn"
+                # Bạn có thể đổi màu tiêu đề riêng cho nút thoát nếu muốn nổi bật
+                on_release: root.quit_app() [cite: 9, 10]
+                card_color: (0.9, 0.1, 0.1, 1)
 
 # ================= SECURITY SCREEN =================
 <SecurityScreen>:
@@ -319,3 +334,39 @@ ScreenManager:
             size_hint_y: 0.2
             background_color: c_primary
             on_release: root.start_voice_chat()
+
+<ElderlyScreen>:
+    name: 'elderly'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 15
+        Button:
+            text: "< QUAY LẠI"
+            size_hint: (0.2, 0.1)
+            on_release: root.go_back()
+        Label:
+            text: "NGƯỜI BẠN TÂM GIAO"
+            font_size: '28sp'
+            bold: True
+            color: (0, 0.8, 1, 1)
+        ScrollView:
+            canvas.before:
+                Color:
+                    rgba: (0.1, 0.1, 0.15, 1)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                id: lbl_elderly_log
+                text: ""
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width, None
+                markup: True
+                padding: [20, 20]
+        ModernButton:
+            id: btn_talk
+            text: "🎙️ BẤM ĐỂ NÓI CHUYỆN"
+            size_hint_y: 0.2
+            on_release: root.toggle_voice_chat()

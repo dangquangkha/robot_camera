@@ -1,0 +1,52 @@
+import threading
+from kivy.uix.screenmanager import Screen
+from kivy.app import App
+from kivy.clock import Clock
+from models.elderly_logic import ElderlyBrain
+
+class ElderlyScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.voice_sys = None
+        self.brain = ElderlyBrain()
+        self.is_listening = False
+
+    def on_enter(self):
+        app = App.get_running_app()
+        self.voice_sys = app.voice_sys
+        self.update_log("Hệ thống: Con chào ông bà, con đã sẵn sàng tâm sự rồi ạ!", "00FFFF")
+
+    def toggle_voice_chat(self):
+        if self.is_listening:
+            self.is_listening = False
+            self.ids.btn_talk.text = "🎙️ BẮM ĐỂ NÓI CHUYỆN"
+            self.ids.btn_talk.background_color = (0, 0.8, 1, 1)
+        else:
+            self.is_listening = True
+            self.ids.btn_talk.text = "🛑 ĐANG NGHE... (BẤM ĐỂ DỪNG)"
+            self.ids.btn_talk.background_color = (1, 0, 0, 1)
+            threading.Thread(target=self._process_voice, daemon=True).start()
+
+    def _process_voice(self):
+        prompt = self.brain.get_prompt()
+        while self.is_listening:
+            user_text = self.voice_sys.listen()
+            if not user_text: continue
+
+            self.update_log(f"Ông/Bà: {user_text}", "FFFFFF")
+            
+            # AI phản hồi bằng tiếng Việt
+            reply = self.voice_sys.ask_gpt(user_text, prompt)
+            self.update_log(f"Cháu: {reply}", "00FF00")
+            
+            self.voice_sys.text_to_speech(reply)
+
+    def update_log(self, text, color="FFFFFF"):
+        def _up(dt):
+            if 'lbl_elderly_log' in self.ids:
+                self.ids.lbl_elderly_log.text += f"[color={color}]{text}[/color]\n"
+        Clock.schedule_once(_up)
+
+    def go_back(self):
+        self.is_listening = False
+        self.manager.current = 'home'
