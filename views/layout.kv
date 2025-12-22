@@ -57,7 +57,7 @@ ScreenManager:
     HomeScreen:
     SecurityScreen:
     TutorScreen:
-
+    ElderlyScreen:
 # ================= HOME SCREEN =================
 <HomeScreen>:
     name: 'home'
@@ -341,15 +341,30 @@ ScreenManager:
         orientation: 'vertical'
         padding: 20
         spacing: 15
-        Button:
-            text: "< QUAY LẠI"
-            size_hint: (0.2, 0.1)
-            on_release: root.go_back()
+        
+        BoxLayout:
+            size_hint_y: 0.1
+            spacing: 10
+            Button:
+                text: "< QUAY LẠI"
+                on_release: root.go_back()
+            
+            # --- NÚT CHỈNH CỠ CHỮ ---
+            Button:
+                text: "Chữ A-"
+                size_hint_x: 0.2
+                on_release: root.adjust_font(-2)
+            Button:
+                text: "Chữ A+"
+                size_hint_x: 0.2
+                on_release: root.adjust_font(2)
+
         Label:
             text: "NGƯỜI BẠN TÂM GIAO"
             font_size: '28sp'
             bold: True
-            color: (0, 0.8, 1, 1)
+            size_hint_y: 0.1
+
         ScrollView:
             canvas.before:
                 Color:
@@ -359,12 +374,14 @@ ScreenManager:
                     size: self.size
             Label:
                 id: lbl_elderly_log
-                text: ""
+                text: "" 
+                font_size: '18sp' # Kích cỡ ban đầu 
                 size_hint_y: None
-                height: self.texture_size[1]
+                height: self.texture_size[1] 
                 text_size: self.width, None
-                markup: True
+                markup: True 
                 padding: [20, 20]
+
         ModernButton:
             id: btn_talk
             text: "🎙️ BẤM ĐỂ NÓI CHUYỆN"

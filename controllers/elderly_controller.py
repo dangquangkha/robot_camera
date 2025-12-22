@@ -50,3 +50,21 @@ class ElderlyScreen(Screen):
     def go_back(self):
         self.is_listening = False
         self.manager.current = 'home'
+    
+    def adjust_font(self, delta):
+            """Hàm điều chỉnh kích cỡ chữ cho người già"""
+            if 'lbl_elderly_log' in self.ids:
+                # 1. Lấy cỡ chữ hiện tại (Kivy trả về dạng số thực)
+                current_size = self.ids.lbl_elderly_log.font_size
+                
+                # 2. Tính toán cỡ mới và giới hạn trong khoảng an toàn (14 - 50)
+                new_size = max(14, min(50, current_size + delta))
+                
+                # 3. Cập nhật lại cho Label
+                self.ids.lbl_elderly_log.font_size = new_size
+                
+                # 4. Lưu lại vào bộ não (nếu bạn muốn đồng bộ với logic)
+                self.brain.font_size = new_size
+                
+                # 5. Thông báo trạng thái
+                self.update_log(f"Hệ thống: Đã chỉnh cỡ chữ thành {int(new_size)}", "FFFF00")

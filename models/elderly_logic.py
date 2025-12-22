@@ -9,5 +9,12 @@ class ElderlyBrain:
             "Sử dụng câu văn ngắn gọn, rõ ràng, tránh từ mượn tiếng Anh hoặc từ lóng trẻ tuổi."
         )
 
+        self.font_size = 18  # Kích cỡ chữ mặc định
+
     def get_prompt(self):
         return self.system_prompt
+    
+    def change_font_size(self, delta):
+        """Tăng hoặc giảm kích cỡ chữ, giới hạn từ 20 đến 80"""
+        self.font_size = max(14, min(50, self.font_size + delta))
+        return self.font_size
