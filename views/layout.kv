@@ -88,24 +88,23 @@ ScreenManager:
                 title: "AN NINH & CAMERA"
                 desc: "Giám sát, phát hiện người lạ"
                 on_release: app.root.current = 'security'
-
+                card_color: (0.1, 0.2, 0.4, 1)
             DashboardCard:
                 title: "GIA SƯ AI"
                 desc: "Học tiếng Anh cùng Robot"
                 on_release: app.root.current = 'tutor'
-            
+                card_color: (0.25, 0.1, 0.35, 1)
             DashboardCard:
-                title: "TÂM SỰ NGƯỜI GIÀ"
+                title: "TÂM SỰ NGƯỜI CAO TUỔI"
                 desc: "Trò chuyện, hỏi thăm sức khỏe"
                 on_release: app.root.current = 'elderly'
-
+                card_color: (0.05, 0.35, 0.35, 1)
             # --- NÚT THOÁT ĐÃ CHUYỂN THÀNH DASHBOARDCARD ---
             DashboardCard:
                 title: "THOÁT ỨNG DỤNG"
                 desc: "Đóng hệ thống an toàn"
                 # Bạn có thể đổi màu tiêu đề riêng cho nút thoát nếu muốn nổi bật
                 on_release: root.quit_app() [cite: 9, 10]
-                card_color: (0.9, 0.1, 0.1, 1)
 
 # ================= SECURITY SCREEN =================
 <SecurityScreen>:
@@ -128,7 +127,7 @@ ScreenManager:
             Button:
                 text: "< HOME"
                 size_hint_x: 0.15
-                background_color: (0.2, 0.2, 0.2, 1)
+                background_color: (0.1, 0.2, 0.4, 1)
                 on_release: app.root.current = 'home'
             # --- [THÊM MỚI] NÚT BẬT/TẮT CAMERA ---
             Button:
@@ -153,7 +152,7 @@ ScreenManager:
                 size_hint_x: 0.65
                 canvas.before:
                     Color:
-                        rgba: (0,0,0,1)
+                        rgba: (0.25, 0.1, 0.35, 1)
                     Rectangle:
                         pos: self.pos
                         size: self.size
@@ -184,7 +183,7 @@ ScreenManager:
                     size_hint_y: 0.7
                     canvas.before:
                         Color:
-                            rgba: (0.1, 0.1, 0.15, 1)
+                            rgba: (0.05, 0.35, 0.35, 1)
                         Rectangle:
                             pos: self.pos
                             size: self.size
@@ -203,7 +202,7 @@ ScreenManager:
                     id: btn_talk
                     text: "🎙️ BẤM ĐỂ NÓI"
                     size_hint_y: 0.15
-                    background_color: (0, 1, 0, 1)
+                    background_color: (0.25, 0.1, 0.35, 1)
                     on_release: root.start_intercom()
 
                 # --- PHẦN THÊM MỚI: ĐĂNG KÝ NGƯỜI NHÀ ---
@@ -235,7 +234,7 @@ ScreenManager:
                         ModernButton:
                             id: btn_register
                             text: "📸 CHỤP & ĐĂNG KÝ"
-                            background_color: (0, 0.8, 0, 1)
+                            background_color: (0.25, 0.1, 0.35, 1)
                             on_release: root.register_member()
 
                 ModernButton:
