@@ -40,7 +40,15 @@ class SecurityScreen(Screen):
         self.update_event = Clock.schedule_interval(self.update_video_feed, 1.0 / 30.0)
 
     def on_leave(self):
+        """Chạy khi THOÁT màn hình (Về Home)"""
+        print("Security: Đang thoát... Dọn dẹp tài nguyên.")
         self.stop_cam()
+        self.is_talking = False # Ngắt cờ đang nói chuyện
+        
+        # Ngắt loa nếu AI đang nói dở
+        if self.voice_sys and hasattr(self.voice_sys, 'stop_speaking'):
+            self.voice_sys.stop_speaking()
+
         if self.update_event:
             self.update_event.cancel()
     

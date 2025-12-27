@@ -15,6 +15,20 @@ class ElderlyScreen(Screen):
         app = App.get_running_app()
         self.voice_sys = app.voice_sys
         self.update_log("Hệ thống: Con chào ông bà, con đã sẵn sàng tâm sự rồi ạ!", "00FFFF")
+    
+    def on_leave(self):
+        """TỰ ĐỘNG CHẠY KHI RỜI MÀN HÌNH NÀY"""
+        print("Elderly: Rời màn hình -> Dừng tâm sự")
+        self.is_listening = False # Ngắt vòng lặp nghe
+        
+        # Reset giao diện nút bấm
+        if 'btn_talk' in self.ids:
+            self.ids.btn_talk.text = "🎙️ BẮM ĐỂ NÓI CHUYỆN"
+            self.ids.btn_talk.background_color = (0, 0.8, 1, 1)
+
+        # Ngắt loa
+        if self.voice_sys and hasattr(self.voice_sys, 'stop_speaking'):
+            self.voice_sys.stop_speaking()
 
     def toggle_voice_chat(self):
         if self.is_listening:

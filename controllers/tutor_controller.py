@@ -80,5 +80,19 @@ class TutorScreen(Screen):
                 self.ids.lbl_tutor_log.text += f"[color={color}]{text}[/color]\n"
         Clock.schedule_once(_up)
 
+    def stop_voice_chat(self):
+        """Hàm dùng để dừng vòng lặp nghe và reset trạng thái"""
+        self.is_listening = False
+        self.update_log("System: Đã ngắt kết nối hội thoại.", "FF0000")
+        
+        # Nếu hệ thống có hàm dừng đọc, hãy gọi nó (nếu không có thì bỏ qua dòng dưới)
+        if self.voice_sys and hasattr(self.voice_sys, 'stop_speaking'):
+            self.voice_sys.stop_speaking()
+
     def go_back(self):
         self.manager.current = 'home'
+    
+    def on_leave(self):
+        """TỰ ĐỘNG CHẠY KHI RỜI MÀN HÌNH NÀY"""
+        print("Đang rời màn hình Tutor -> Tắt Mic")
+        self.stop_voice_chat()
