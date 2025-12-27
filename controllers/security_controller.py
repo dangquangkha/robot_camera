@@ -102,7 +102,6 @@ class SecurityScreen(Screen):
             # Lưu ý: size=(width, height) tương ứng với shape[1] và shape[0]
             texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
-            texture.flip_vertical()
             self.ids.img_camera.texture = texture
 
     # --- VOICE LOGIC ---
