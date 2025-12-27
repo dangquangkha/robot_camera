@@ -162,7 +162,7 @@ class SecuritySystem:
         imou_pass = "KHAi2692004" 
         
         # ==> HÃY THỬ ĐỔI IP NẾU .228 KHÔNG ĐƯỢC
-        imou_ip = "192.168.1.222" # Nếu lỗi, hãy thử đổi thành "192.168.1.108"
+        imou_ip = "192.168.1.221" # Nếu lỗi, hãy thử đổi thành "192.168.1.108"
         
         rtsp_url = f"rtsp://admin:{imou_pass}@{imou_ip}:554/cam/realmonitor?channel=1&subtype=1"
 
