@@ -29,7 +29,7 @@ THU_MUC_DATA_LOCAL = "local_family_data"
 MODEL_NAME = "Facenet512"
 DETECTOR_BACKEND = "ssd"
 NGUONG_NHAN_DIEN = 0.8
-DANGER_ZONE = [100, 300, 600, 480]
+DANGER_ZONE = [100, 100, 600, 500]
 DELAY_BAO_DONG = 10.0
 
 class SecuritySystem:
