@@ -31,7 +31,7 @@
     padding: 20
     spacing: 10
     canvas.before:
-        Color:
+        Color:  
             # SỬA DÒNG NÀY: Thay c_card bằng self.card_color
             rgba: self.card_color
         RoundedRectangle:
@@ -68,43 +68,97 @@ ScreenManager:
             pos: self.pos
             size: self.size
     
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 40
-        spacing: 30
-        
+    # 1. LỚP CHÍNH: BONG BÓNG VÀ TRẠNG THÁI
+    FloatLayout:
+        # Bong bóng 3D nằm chính giữa
+        Bubble3D:
+            id: bubble_widget
+            pos_hint: {'center_x': 0.5, 'center_y': 0.55}
+            size_hint: (None, None)
+            size: (200, 200)
+
+        # Label hiển thị trạng thái giọng nói (nhỏ bên dưới bong bóng)
         Label:
-            text: "AI ROBOT CONTROL HUB"
-            font_size: '32sp'
+            id: lbl_status
+            text: "Đang lắng nghe..."
+            font_size: '18sp'
+            color: (0.6, 0.8, 1, 1)
+            pos_hint: {'center_x': 0.5, 'y': 0.25}
+            size_hint: (1, 0.1)
+            halign: 'center'
+
+        # Nút Mở Menu (Góc trên phải)
+        Button:
+            text: "☰ MENU"
+            font_size: '20sp'
+            size_hint: (None, None)
+            size: (100, 50)
+            pos_hint: {'right': 0.95, 'top': 0.95}
+            background_color: (0.2, 0.2, 0.3, 1)
+            on_release: root.toggle_menu()
+
+    # 2. LỚP PHỦ MENU (Overlay) - Mặc định ẩn (opacity: 0)
+    BoxLayout:
+        id: menu_overlay
+        orientation: 'vertical'
+        size_hint: (0.9, 0.8)
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        padding: 20
+        spacing: 20
+        opacity: 0 
+        disabled: True # Không bấm được khi ẩn
+        
+        canvas.before:
+            Color:
+                rgba: (0, 0, 0, 0.9) # Nền đen mờ che bong bóng
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [20,]
+
+        Label:
+            text: "BẢNG ĐIỀU KHIỂN THỦ CÔNG"
+            font_size: '24sp'
             bold: True
+            size_hint_y: 0.15
             color: c_primary
-            size_hint_y: 0.2
 
         GridLayout:
             cols: 2
-            spacing: 20
-            
+            spacing: 15
+            size_hint_y: 0.7
+
             DashboardCard:
-                title: "AN NINH & CAMERA"
-                desc: "Giám sát, phát hiện người lạ"
-                on_release: app.root.current = 'security'
+                title: "AN NINH"
+                desc: "Camera giám sát"
                 card_color: (0.1, 0.2, 0.4, 1)
+                on_release: app.root.current = 'security'
+
             DashboardCard:
-                title: "GIA SƯ AI"
-                desc: "Học tiếng Anh cùng Robot"
-                on_release: app.root.current = 'tutor'
+                title: "HỌC TẬP"
+                desc: "Gia sư Tiếng Anh"
                 card_color: (0.25, 0.1, 0.35, 1)
+                on_release: app.root.current = 'tutor'
+
             DashboardCard:
-                title: "TÂM SỰ NGƯỜI CAO TUỔI"
-                desc: "Trò chuyện, hỏi thăm sức khỏe"
-                on_release: app.root.current = 'elderly'
+                title: "TÂM SỰ"
+                desc: "Trò chuyện người cao tuổi"
                 card_color: (0.05, 0.35, 0.35, 1)
-            # --- NÚT THOÁT ĐÃ CHUYỂN THÀNH DASHBOARDCARD ---
+                on_release: app.root.current = 'elderly'
+
+            # Nút THOÁT ỨNG DỤNG (Theo yêu cầu: Chuyển về bong bóng)
             DashboardCard:
-                title: "THOÁT ỨNG DỤNG"
-                desc: "Đóng hệ thống an toàn"
-                # Bạn có thể đổi màu tiêu đề riêng cho nút thoát nếu muốn nổi bật
-                on_release: root.quit_app() [cite: 9, 10]
+                title: "THOÁT RA"
+                desc: "Đóng Menu, về Bong bóng"
+                card_color: (0.4, 0.1, 0.1, 1)
+                on_release: root.close_menu() 
+
+        # Nút thoát app thật sự (nếu cần)
+        Button:
+            text: "Tắt nguồn hệ thống"
+            size_hint_y: 0.1
+            background_color: (1, 0, 0, 0.5)
+            on_release: root.quit_app()
 
 # ================= SECURITY SCREEN =================
 <SecurityScreen>:

@@ -47,7 +47,10 @@ class VoiceAssistant:
                 messages=[
                     {"role": "system", "content": system_context},
                     {"role": "user", "content": user_text}
-                ]
+                ],
+                temperature=0.6,
+                max_tokens=90  # token ≠ từ, nhưng giúp hạn chế lan man
+
             )
             return response.choices[0].message.content
         except Exception as e:
