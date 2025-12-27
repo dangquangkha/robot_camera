@@ -195,8 +195,8 @@ class SecuritySystem:
                 time.sleep(2)
                 cap = cv2.VideoCapture(rtsp_url) # Thử kết nối lại
                 continue
-            
-            cv2.flip(img, 1)
+
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
             # ... (Phần code xử lý bên dưới giữ nguyên) ...
             
             # --- YOLO TRACKING ---
