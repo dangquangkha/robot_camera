@@ -196,7 +196,7 @@ class SecuritySystem:
                 cap = cv2.VideoCapture(rtsp_url) # Thử kết nối lại
                 continue
             
-            cv2.flip(img, -1)
+            cv2.flip(img, 1)
             # ... (Phần code xử lý bên dưới giữ nguyên) ...
             
             # --- YOLO TRACKING ---
