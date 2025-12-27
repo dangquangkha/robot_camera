@@ -190,7 +190,7 @@ class HomeScreen(Screen):
         
         if self.voice_sys:
             # Gửi lên GPT
-            reply = self.voice_sys.ask_gpt(text, "Bạn là trợ lý ảo nhà thông minh. Trả lời ngắn gọn dưới 2 câu.")
+            reply = self.voice_sys.ask_gpt(text, "Bạn là Chó Robot Thông Minh. Trả lời ngắn gọn dưới 2 câu.")
             self.update_status(f"AI: {reply}")
             # Nói ra loa
             self.voice_sys.text_to_speech(reply)

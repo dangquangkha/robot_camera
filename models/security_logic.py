@@ -196,6 +196,7 @@ class SecuritySystem:
                 cap = cv2.VideoCapture(rtsp_url) # Thử kết nối lại
                 continue
             
+            cv2.flip(img, -1)
             # ... (Phần code xử lý bên dưới giữ nguyên) ...
             
             # --- YOLO TRACKING ---
@@ -208,7 +209,7 @@ class SecuritySystem:
                     track_id = int(box.id[0]) if box.id is not None else -1
                     x1, y1, x2, y2 = map(int, box.xyxy[0])
                     center = (int((x1+x2)/2), int((y1+y2)/2))
-                    
+
                     # 1. Xác định danh tính
                     person_name = self.verified_tracks.get(track_id, "Dang xac minh...")
                     if track_id not in self.verified_tracks:
