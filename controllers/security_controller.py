@@ -14,6 +14,7 @@ from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.animation import Animation
 
 # THÊM CLASS NÀY ĐỂ ẢNH CÓ THỂ CLICK ĐƯỢC
 class ClickableImage(ButtonBehavior, KivyImage):
@@ -26,7 +27,7 @@ class SecurityScreen(Screen):
         self.voice_sys = None
         self.update_event = None
         self.is_talking = False
-
+        self.settings_open = False  # Trạng thái menu cài đặt đóng/mở
     def on_enter(self):
         app = App.get_running_app()
         self.security_sys = app.security_sys
@@ -273,3 +274,16 @@ class SecurityScreen(Screen):
             
             # Hiển thị thông báo lên màn hình chat cho người dùng thấy
             self.update_chat_log(f"Hệ thống: Đang kết nối tới IP {ip_text}...", color="FFFF00")
+
+    def toggle_settings_menu(self):
+            """Hiệu ứng trượt Menu Cài đặt"""
+            menu = self.ids.settings_menu
+            if not self.settings_open:
+                # Trượt vào màn hình (bám sát lề phải)
+                anim = Animation(pos_hint={'right': 1}, duration=0.3, t='out_quad')
+                self.settings_open = True
+            else:
+                # Trượt ra ngoài màn hình về bên trái
+                anim = Animation(pos_hint={'right': -0.1}, duration=0.3, t='in_quad')
+                self.settings_open = False
+            anim.start(menu)

@@ -57,6 +57,15 @@
         size_hint_y: 0.7
         halign: 'center'
 
+# --- ĐỊNH NGHĨA ĐƯỜNG KẺ NGANG ---
+<Separator@Widget>:
+    canvas:
+        Color:
+            rgba: (0.3, 0.3, 0.3, 1) # Màu xám cho đường kẻ
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
 ScreenManager:
     HomeScreen:
     SecurityScreen:
@@ -174,167 +183,194 @@ ScreenManager:
             pos: self.pos
             size: self.size
 
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-        spacing: 10
-
-        # HEADER
+    # Dùng FloatLayout để có thể lớp phủ Menu Cài đặt lên trên
+    FloatLayout:
         BoxLayout:
-            size_hint_y: 0.08
-            Button:
-                text: "< HOME"
-                size_hint_x: 0.15
-                background_color: (0.1, 0.2, 0.4, 1)
-                on_release: app.root.current = 'home'
-            
-            # --- NÚT CHUYỂN CAMERA MỚI ---
-            Button:
-                text: "ĐỔI CAMERA"
-                size_hint_x: 0.2
-                background_color: (0, 0.6, 0.8, 1) # Màu xanh dương
-                on_release: root.change_camera_source() # Gọi hàm ở class SecurityScreen (Python)
-                
-            # --- [THÊM MỚI] NÚT BẬT/TẮT CAMERA ---
-            Button:
-                id: btn_cam_toggle
-                text: "TẮT CAMERA" # Mặc định là đang bật
-                size_hint_x: 0.2
-                background_color: (1, 0, 0, 1) # Màu đỏ (báo hiệu đang quay)
-                on_release: root.toggle_camera() 
-            # -------------------------------------
-            Label:
-                text: "CAMERA MONITOR & AI CHAT"
-                bold: True
-                color: c_primary
-
-        # BODY
-        BoxLayout:
-            orientation: 'horizontal'
+            orientation: 'vertical'
+            padding: 10
             spacing: 10
+            pos_hint: {'x': 0, 'y': 0}
+            size_hint: (1, 1)
 
-            # 1. CAMERA (Đã sửa lỗi Line)
+            # HEADER
             BoxLayout:
-                size_hint_x: 0.65
-                canvas.before:
-                    Color:
-                        rgba: (0.25, 0.1, 0.35, 1)
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                    # Viền xanh
-                    Color:
-                        rgba: c_primary
-                    Line:
-                        rectangle: (self.x, self.y, self.width, self.height)
-                        width: 1.5
-                Image:
-                    id: img_camera
-                    allow_stretch: True
-                    keep_ratio: True
-
-            # 2. KHUNG CHAT
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_x: 0.35
-                spacing: 10
-                padding: 5
+                size_hint_y: 0.08
+                Button:
+                    text: "< HOME"
+                    size_hint_x: 0.15
+                    background_color: (0.1, 0.2, 0.4, 1)
+                    on_release: app.root.current = 'home'
                 
+                Button:
+                    text: "ĐỔI CAMERA"
+                    size_hint_x: 0.2
+                    background_color: (0, 0.6, 0.8, 1)
+                    on_release: root.change_camera_source()
+                    
+                Button:
+                    id: btn_cam_toggle
+                    text: "TẮT CAMERA"
+                    size_hint_x: 0.2
+                    background_color: (1, 0, 0, 1)
+                    on_release: root.toggle_camera() 
+
                 Label:
-                    text: "NHẬT KÝ HỘI THOẠI"
-                    size_hint_y: 0.05
+                    text: "CAMERA MONITOR"
                     bold: True
-                
-                ScrollView:
-                    size_hint_y: 0.7
+                    color: c_primary
+
+            # BODY
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+
+                # 1. CAMERA chính
+                BoxLayout:
+                    size_hint_x: 0.65
                     canvas.before:
                         Color:
-                            rgba: (0.05, 0.35, 0.35, 1)
+                            rgba: (0.25, 0.1, 0.35, 1)
                         Rectangle:
                             pos: self.pos
                             size: self.size
-                    Label:
-                        id: lbl_chat_log
-                        text: "System: Sẵn sàng...\n"
-                        size_hint_y: None
-                        height: self.texture_size[1]
-                        text_size: self.width, None
-                        halign: 'left'
-                        valign: 'top'
-                        padding: [10, 10]
-                        markup: True
+                        Color:
+                            rgba: c_primary
+                        Line:
+                            rectangle: (self.x, self.y, self.width, self.height)
+                            width: 1.5
+                    Image:
+                        id: img_camera
+                        allow_stretch: True
+                        keep_ratio: True
 
-                ModernButton:
-                    id: btn_talk
-                    text: "BẤM ĐỂ NÓI"
-                    size_hint_y: 0.15
-                    background_color: (0.25, 0.1, 0.35, 1)
-                    on_release: root.start_intercom()
-                
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint_y: 0.1
-                    spacing: 5
-                    
-                    TextInput:
-                        id: txt_ip_suffix
-                        hint_text: "3 số cuối (vd: 176)"
-                        multiline: False
-                        #input_filter: 'int' # Chỉ cho phép nhập số
-                        size_hint_x: 0.6
-                        font_size: '18sp'
-                        halign: 'center'
-
-                    ModernButton:
-                        text: "ĐỔI IP"
-                        size_hint_x: 0.4
-                        background_color: (1, 0.8, 0, 1) # Màu vàng cam
-                        on_release: root.update_camera_ip(txt_ip_suffix.text)
-                    
-                    ModernButton:
-                        text: "DÒ IP TỰ ĐỘNG"
-                        size_hint_x: 0.5
-                        background_color: (0, 0.8, 0.4, 1) # Màu xanh lá đậm
-                        on_release: root.auto_fix_camera_connection() # Gọi hàm vừa thêm ở trên
-
-                # --- PHẦN THÊM MỚI: ĐĂNG KÝ NGƯỜI NHÀ ---
-                # Trong phần Đăng ký người nhà của SecurityScreen
+                # 2. KHUNG CHAT VÀ NÚT CHÍNH
                 BoxLayout:
                     orientation: 'vertical'
-                    size_hint_y: 0.25  # Tăng diện tích khu vực này để dễ chạm
+                    size_hint_x: 0.35
                     spacing: 10
+                    padding: 5
                     
-                    # Trong file views/layout.kv
-                    TextInput:
-                        id: txt_member_name
-                        hint_text: "Chạm vào đây để nhập tên..."
-                        multiline: False
-                        font_size: '20sp'
-                        size_hint_y: 0.4
-                        input_type: 'text'
-                        # Thêm dòng này để hỗ trợ tốt hơn cho cảm ứng
-                        keyboard_suggestions: True
-
-                    BoxLayout:
+                    ScrollView:
                         size_hint_y: 0.6
-                        spacing: 10
-                        ModernButton:
-                            text: "XÓA CHỮ"
-                            background_color: (0.7, 0.7, 0.7, 1)
-                            on_release: txt_member_name.text = "" # Nút xóa nhanh bằng tay
-                        
-                        ModernButton:
-                            id: btn_register
-                            text: "ĐĂNG KÝ"
-                            background_color: (0.25, 0.1, 0.35, 1)
-                            on_release: root.register_member()
+                        canvas.before:
+                            Color:
+                                rgba: (0.05, 0.35, 0.35, 1)
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+                        Label:
+                            id: lbl_chat_log
+                            text: "System: Sẵn sàng...\n"
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            text_size: self.width, None
+                            halign: 'left'
+                            valign: 'top'
+                            padding: [10, 10]
+                            markup: True
 
+                    ModernButton:
+                        id: btn_talk
+                        text: "BẤM ĐỂ NÓI"
+                        size_hint_y: 0.2
+                        background_color: (0.25, 0.1, 0.35, 1)
+                        on_release: root.start_intercom()
+
+                    ModernButton:
+                        text: "XEM LỊCH SỬ"
+                        size_hint_y: 0.1
+                        background_color: (1, 0.5, 0, 1)
+                        on_release: root.show_gallery()
+
+                    # NÚT MỞ CÀI ĐẶT
+                    ModernButton:
+                        text: "CÀI ĐẶT HỆ THỐNG"
+                        size_hint_y: 0.1
+                        background_color: (0.4, 0.4, 0.4, 1)
+                        on_release: root.toggle_settings_menu()
+
+        # -----------------------------------------------------------
+        # LỚP PHỦ MENU CÀI ĐẶT (Mặc định ẩn)
+        # -----------------------------------------------------------
+        BoxLayout:
+            id: settings_menu
+            orientation: 'vertical'
+            size_hint: (0.4, 0.6)
+            pos_hint: {'right': -1, 'center_y': 0.5} # Nằm ngoài màn hình bên trái
+            padding: 15
+            spacing: 15
+            canvas.before:
+                Color:
+                    rgba: (0.1, 0.1, 0.2, 0.95)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [20, 0, 0, 20]
+                Color:
+                    rgba: c_primary
+                Line:
+                    rounded_rectangle: (self.x, self.y, self.width, self.height, 20)
+                    width: 2
+
+            Label:
+                text: "CẤU HÌNH CAMERA"
+                bold: True
+                size_hint_y: 0.1
+                color: c_primary
+
+            # Phần Đổi IP
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: 5
+                TextInput:
+                    id: txt_ip_suffix
+                    hint_text: "Địa chỉ IP"
+                    multiline: False
+                    size_hint_x: 0.7
                 ModernButton:
-                    text: "XEM LỊCH SỬ XÂM NHẬP"
-                    size_hint_y: 0.1
-                    background_color: (1, 0.5, 0, 1)
-                    on_release: root.show_gallery()
+                    text: "ĐỔI"
+                    size_hint_x: 0.3
+                    on_release: root.update_camera_ip(txt_ip_suffix.text)
 
+            ModernButton:
+                text: "DÒ IP TỰ ĐỘNG (MAC)"
+                size_hint_y: 0.15
+                background_color: (0, 0.8, 0.4, 1)
+                on_release: root.auto_fix_camera_connection()
+
+            Separator: # Một đường kẻ ngang giả
+                size_hint_y: None
+                height: 2
+
+            Label:
+                text: "ĐĂNG KÝ NGƯỜI NHÀ"
+                bold: True
+                size_hint_y: 0.1
+
+            TextInput:
+                id: txt_member_name
+                hint_text: "Nhập tên người cần lưu..."
+                size_hint_y: 0.15
+                multiline: False
+
+            BoxLayout:
+                size_hint_y: 0.15
+                spacing: 10
+                ModernButton:
+                    text: "XÓA"
+                    background_color: (0.7, 0.2, 0.2, 1)
+                    on_release: txt_member_name.text = ""
+                ModernButton:
+                    text: "LƯU MẶT"
+                    background_color: (0.25, 0.1, 0.35, 1)
+                    on_release: root.register_member()
+
+            ModernButton:
+                text: "ĐÓNG CÀI ĐẶT"
+                size_hint_y: 0.1
+                background_color: (0.5, 0.5, 0.5, 1)
+                on_release: root.toggle_settings_menu()
 <TutorScreen>:
     name: 'tutor'
     canvas.before:
