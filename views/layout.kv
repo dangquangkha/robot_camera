@@ -280,7 +280,7 @@ ScreenManager:
                         id: txt_ip_suffix
                         hint_text: "3 số cuối (vd: 176)"
                         multiline: False
-                        input_filter: 'int' # Chỉ cho phép nhập số
+                        #input_filter: 'int' # Chỉ cho phép nhập số
                         size_hint_x: 0.6
                         font_size: '18sp'
                         halign: 'center'
@@ -290,6 +290,12 @@ ScreenManager:
                         size_hint_x: 0.4
                         background_color: (1, 0.8, 0, 1) # Màu vàng cam
                         on_release: root.update_camera_ip(txt_ip_suffix.text)
+                    
+                    ModernButton:
+                        text: "DÒ IP TỰ ĐỘNG"
+                        size_hint_x: 0.5
+                        background_color: (0, 0.8, 0.4, 1) # Màu xanh lá đậm
+                        on_release: root.auto_fix_camera_connection() # Gọi hàm vừa thêm ở trên
 
                 # --- PHẦN THÊM MỚI: ĐĂNG KÝ NGƯỜI NHÀ ---
                 # Trong phần Đăng ký người nhà của SecurityScreen

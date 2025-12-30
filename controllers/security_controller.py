@@ -249,3 +249,27 @@ class SecurityScreen(Screen):
             
             # Cập nhật thông báo lên giao diện
             self.update_chat_log("Hệ thống: Đang chuyển nguồn Camera...", color="ffff00")
+    
+    # Thêm vào class SecurityScreen trong security_controller.py
+    def auto_fix_camera_connection(self):
+        """Kích hoạt dò IP tự động và cập nhật giao diện"""
+        if self.security_sys:
+            # 1. Gọi logic quét ARP từ file security_logic.py
+            self.security_sys.update_ips_by_mac()
+            
+            # 2. Cập nhật thông báo lên Nhật ký hội thoại
+            self.update_chat_log("Hệ thống: Đã tự động đồng bộ IP theo địa chỉ MAC.", color="00FF00")
+            
+            # 3. Khởi động lại luồng camera với IP mới nhất
+            self.change_camera_source()
+    
+    # Mở file security_controller.py và thêm hàm này vào trong class SecurityScreen:
+
+    def update_camera_ip(self, ip_text):
+        """Lấy dữ liệu IP đầy đủ từ giao diện và gửi xuống SecuritySystem"""
+        if self.security_sys:
+            # Gọi hàm xử lý trong security_logic.py
+            self.security_sys.update_camera_ip(ip_text)
+            
+            # Hiển thị thông báo lên màn hình chat cho người dùng thấy
+            self.update_chat_log(f"Hệ thống: Đang kết nối tới IP {ip_text}...", color="FFFF00")

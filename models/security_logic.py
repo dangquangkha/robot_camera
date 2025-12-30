@@ -10,7 +10,7 @@ import mysql.connector
 from datetime import datetime
 from ultralytics import YOLO
 from deepface import DeepFace
-
+import re
 # === CẤU HÌNH TỪ FILE CŨ ===
 BASE_URL = "https://khai-security-robot-f5870f032456.herokuapp.com"
 GET_FAMILY_LIST_API = f"{BASE_URL}/get_family_list"
@@ -48,6 +48,10 @@ class SecuritySystem:
         if not os.path.exists(THU_MUC_DATA_LOCAL): os.makedirs(THU_MUC_DATA_LOCAL)
 
         self.current_camera_index = 0
+        self.camera_configs = {
+            "CAM_01": {"mac": "1c-4d-89-d8-c0-fb", "ip": "192.168.1.176", "user": "admin", "pass": "KHAi2692004"},
+            "CAM_02": {"mac": "1c-4d-89-d8-c5-be", "ip": "192.168.1.222", "user": "admin", "pass": "KHAi2692004"}
+        }
         self.camera_urls = [
         "rtsp://admin:KHAi2692004@192.168.1.176:554/cam/realmonitor?channel=1&subtype=1",
         "rtsp://admin:KHAi2692004@192.168.1.222:554/cam/realmonitor?channel=1&subtype=1" # Camera thứ 2
@@ -170,53 +174,78 @@ class SecuritySystem:
         if self.cap is not None:
             self.cap.release()
     
-    def update_camera_ip(self, ip_suffix):
+    def update_ips_by_mac(self):
+        """Quét mạng để tìm IP mới nhất dựa trên địa chỉ MAC đã biết"""
+        print("--- 🔍 Đang quét mạng để cập nhật IP theo MAC... ---")
+
+        # Chạy lệnh hệ thống để lấy bảng ARP
+        with os.popen('arp -a') as f:
+            arp_data = f.read().lower()
+
+        updated = False
+        new_urls = []
+
+        # Duyệt qua từng camera trong cấu hình
+        for cam_id, info in self.camera_configs.items():
+            mac_target = info['mac'].replace(':', '-').lower()
+            # Tìm IP tương ứng với MAC trong dữ liệu ARP
+            match = re.search(r'(\d+\.\d+\.\d+\.\d+)\s+' + mac_target, arp_data)
+            
+            if match:
+                new_ip = match.group(1)
+                if new_ip != info['ip']:
+                    print(f"✅ Phát hiện IP mới cho {cam_id}: {new_ip}")
+                    info['ip'] = new_ip
+                    updated = True
+            
+            # Xây dựng lại URL RTSP
+            url = f"rtsp://{info['user']}:{info['pass']}@{info['ip']}:554/cam/realmonitor?channel=1&subtype=1"
+            new_urls.append(url)
+
+        if updated:
+            self.camera_urls = new_urls
+            print("--- 🔄 Đã cập nhật lại danh sách camera_urls ---")
+
+    # Trong file security_logic.py, thay thế hàm update_camera_ip cũ:
+
+    def update_camera_ip(self, full_ip_input):
         """
-        Cập nhật 3 số cuối của IP cho các camera trong danh sách urls.
+        Cập nhật toàn bộ địa chỉ IP mới cho các camera trong danh sách urls.
         """
-        if not ip_suffix or not ip_suffix.isdigit():
-            print("❌ Vui lòng nhập số IP hợp lệ (ví dụ: 176)")
+        # 1. Kiểm tra định dạng IP cơ bản (phải có 3 dấu chấm)
+        if not full_ip_input or full_ip_input.count('.') != 3:
+            print(f"❌ Địa chỉ IP '{full_ip_input}' không hợp lệ. Vui lòng nhập đầy đủ (vd: 192.168.1.176)")
             return
 
-        print(f"--- Đang cập nhật IP cuối: {ip_suffix} ---")
+        print(f"--- 🔄 Đang cập nhật sang IP mới: {full_ip_input} ---")
         
         new_urls = []
-        for url in self.system.camera_urls:
+        # Lưu ý: Trong logic của bạn, self.system chính là self nếu hàm nằm trong SecuritySystem
+        for url in self.camera_urls: 
             try:
-                # 1. Tách chuỗi để tìm phần IP (giữa '@' và ':554')
-                # Ví dụ: rtsp://admin:pass@192.168.1.176:554/...
+                # Tách chuỗi: rtsp://user:pass@OLD_IP:554/path
                 prefix, rest = url.split('@')
                 ip_and_port, path = rest.split('/', 1)
-                full_ip, port = ip_and_port.split(':')
+                old_ip, port = ip_and_port.split(':')
                 
-                # 2. Thay thế 3 số cuối của IP
-                ip_parts = full_ip.split('.')
-                if len(ip_parts) == 4:
-                    ip_parts[3] = ip_suffix
-                    new_ip = ".".join(ip_parts)
-                    
-                    # 3. Ghép lại URL hoàn chỉnh
-                    new_url = f"{prefix}@{new_ip}:{port}/{path}"
-                    new_urls.append(new_url)
-                else:
-                    new_urls.append(url)
+                # Ghép lại với IP mới hoàn toàn
+                new_url = f"{prefix}@{full_ip_input}:{port}/{path}"
+                new_urls.append(new_url)
             except Exception as e:
                 print(f"❌ Lỗi xử lý URL {url}: {e}")
                 new_urls.append(url)
 
-        # Cập nhật danh sách URL mới vào hệ thống lõi
-        self.system.camera_urls = new_urls
+        # Cập nhật danh sách URL và cấu hình bộ nhớ
+        self.camera_urls = new_urls
         
-        # Gọi hàm chuyển camera để áp dụng thay đổi ngay lập tức
-        self.change_camera_source()
-        print(f"✅ Đã cập nhật xong danh sách IP mới.")
+        # Kích hoạt chuyển nguồn để áp dụng ngay
+        self.switch_camera()
+        print(f"✅ Đã cập nhật xong IP: {full_ip_input}")
 
     def change_camera_source(self):
-        """Ngắt camera hiện tại và chuyển sang nguồn mới (hoặc khởi động lại nguồn cũ)"""
-        if self.system:
-            self.system.switch_camera()
-            # Thông báo lên giao diện (nếu cần)
-            self.ids.lbl_chat_log.text += f"[color=ffff00]System: Đang kết nối tới Camera IP cuối .{self.ids.txt_ip_suffix.text}...[/color]\n"
+        """Ngắt camera hiện tại và chuyển sang nguồn mới"""
+        # Thay vì self.system.switch_camera(), hãy dùng:
+        self.switch_camera()
 
     def camera_loop(self):
         """Vòng lặp Camera chính với hỗ trợ đổi nguồn và đầy đủ tính năng vẽ"""
