@@ -93,7 +93,7 @@ ScreenManager:
 
         # Nút Mở Menu (Góc trên phải)
         Button:
-            text: "☰ MENU"
+            text: "MENU"
             font_size: '20sp'
             size_hint: (None, None)
             size: (100, 50)
@@ -187,6 +187,14 @@ ScreenManager:
                 size_hint_x: 0.15
                 background_color: (0.1, 0.2, 0.4, 1)
                 on_release: app.root.current = 'home'
+            
+            # --- NÚT CHUYỂN CAMERA MỚI ---
+            Button:
+                text: "ĐỔI CAMERA"
+                size_hint_x: 0.2
+                background_color: (0, 0.6, 0.8, 1) # Màu xanh dương
+                on_release: root.change_camera_source() # Gọi hàm ở class SecurityScreen (Python)
+                
             # --- [THÊM MỚI] NÚT BẬT/TẮT CAMERA ---
             Button:
                 id: btn_cam_toggle
@@ -262,6 +270,26 @@ ScreenManager:
                     size_hint_y: 0.15
                     background_color: (0.25, 0.1, 0.35, 1)
                     on_release: root.start_intercom()
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.1
+                    spacing: 5
+                    
+                    TextInput:
+                        id: txt_ip_suffix
+                        hint_text: "3 số cuối (vd: 176)"
+                        multiline: False
+                        input_filter: 'int' # Chỉ cho phép nhập số
+                        size_hint_x: 0.6
+                        font_size: '18sp'
+                        halign: 'center'
+
+                    ModernButton:
+                        text: "ĐỔI IP"
+                        size_hint_x: 0.4
+                        background_color: (1, 0.8, 0, 1) # Màu vàng cam
+                        on_release: root.update_camera_ip(txt_ip_suffix.text)
 
                 # --- PHẦN THÊM MỚI: ĐĂNG KÝ NGƯỜI NHÀ ---
                 # Trong phần Đăng ký người nhà của SecurityScreen

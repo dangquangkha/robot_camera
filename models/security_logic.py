@@ -47,6 +47,13 @@ class SecuritySystem:
         if not os.path.exists(THU_MUC_BAO_DONG): os.makedirs(THU_MUC_BAO_DONG)
         if not os.path.exists(THU_MUC_DATA_LOCAL): os.makedirs(THU_MUC_DATA_LOCAL)
 
+        self.current_camera_index = 0
+        self.camera_urls = [
+        "rtsp://admin:KHAi2692004@192.168.1.176:554/cam/realmonitor?channel=1&subtype=1",
+        "rtsp://admin:KHAi2692004@192.168.1.222:554/cam/realmonitor?channel=1&subtype=1" # Camera thứ 2
+        ]
+        self.cap = None
+
     def load_resources(self):
         """Hàm này chạy ngầm để load Model AI"""
         print("--- [MODEL] Đang tải tài nguyên AI... ---")
@@ -154,117 +161,153 @@ class SecuritySystem:
             except: pass
             time.sleep(0.1)
 
+    def switch_camera(self):
+        """Hàm này sẽ được gọi khi bấm nút trên giao diện"""
+        self.current_camera_index = (self.current_camera_index + 1) % len(self.camera_urls)
+        print(f"--- Đang chuyển sang Camera: {self.current_camera_index} ---")
+        
+        # Giải phóng camera hiện tại để loop nhận diện ra success = False và tự kết nối lại
+        if self.cap is not None:
+            self.cap.release()
+    
+    def update_camera_ip(self, ip_suffix):
+        """
+        Cập nhật 3 số cuối của IP cho các camera trong danh sách urls.
+        """
+        if not ip_suffix or not ip_suffix.isdigit():
+            print("❌ Vui lòng nhập số IP hợp lệ (ví dụ: 176)")
+            return
+
+        print(f"--- Đang cập nhật IP cuối: {ip_suffix} ---")
+        
+        new_urls = []
+        for url in self.system.camera_urls:
+            try:
+                # 1. Tách chuỗi để tìm phần IP (giữa '@' và ':554')
+                # Ví dụ: rtsp://admin:pass@192.168.1.176:554/...
+                prefix, rest = url.split('@')
+                ip_and_port, path = rest.split('/', 1)
+                full_ip, port = ip_and_port.split(':')
+                
+                # 2. Thay thế 3 số cuối của IP
+                ip_parts = full_ip.split('.')
+                if len(ip_parts) == 4:
+                    ip_parts[3] = ip_suffix
+                    new_ip = ".".join(ip_parts)
+                    
+                    # 3. Ghép lại URL hoàn chỉnh
+                    new_url = f"{prefix}@{new_ip}:{port}/{path}"
+                    new_urls.append(new_url)
+                else:
+                    new_urls.append(url)
+            except Exception as e:
+                print(f"❌ Lỗi xử lý URL {url}: {e}")
+                new_urls.append(url)
+
+        # Cập nhật danh sách URL mới vào hệ thống lõi
+        self.system.camera_urls = new_urls
+        
+        # Gọi hàm chuyển camera để áp dụng thay đổi ngay lập tức
+        self.change_camera_source()
+        print(f"✅ Đã cập nhật xong danh sách IP mới.")
+
+    def change_camera_source(self):
+        """Ngắt camera hiện tại và chuyển sang nguồn mới (hoặc khởi động lại nguồn cũ)"""
+        if self.system:
+            self.system.switch_camera()
+            # Thông báo lên giao diện (nếu cần)
+            self.ids.lbl_chat_log.text += f"[color=ffff00]System: Đang kết nối tới Camera IP cuối .{self.ids.txt_ip_suffix.text}...[/color]\n"
+
     def camera_loop(self):
-        """Vòng lặp Camera chính"""
-        print("--- [CAMERA] Đang mở Camera Imou... ---")
+        """Vòng lặp Camera chính với hỗ trợ đổi nguồn và đầy đủ tính năng vẽ"""
+        print("--- [CAMERA] Hệ thống camera đang khởi động... ---")
         
-        # --- CẤU HÌNH CAMERA ---
-        imou_pass = "KHAi2692004" 
-        
-        # ==> HÃY THỬ ĐỔI IP NẾU .228 KHÔNG ĐƯỢC
-        imou_ip = "192.168.1.221" # Nếu lỗi, hãy thử đổi thành "192.168.1.108"
-        
-        rtsp_url = f"rtsp://admin:{imou_pass}@{imou_ip}:554/cam/realmonitor?channel=1&subtype=1"
-
-        # Cấu hình FFMPEG để ưu tiên TCP và giảm thời gian timeout chờ đợi
+        # Cấu hình FFMPEG để tối ưu RTSP
         os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|timeout;5000000" 
-        
-        cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
-        # Giới hạn bộ đệm để giảm độ trễ (latency)
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        
-        # Kiểm tra ngay lập tức xem có mở được không
-        if not cap.isOpened():
-            print(f"❌ LỖI NGHIÊM TRỌNG: Không thể mở RTSP URL: {rtsp_url}")
-            print("👉 Gợi ý: Kiểm tra lại IP (có thể là .108?) hoặc tắt 'Mã hóa hình ảnh' trên App.")
-        else:
-            print("✅ Đã kết nối thành công với Camera!")
 
-        # ... (Phần code while loop bên dưới giữ nguyên)
-        # ---------------------------------------------
-
-        # Chờ load model xong nếu chưa xong
+        # Chờ load model YOLO xong mới bắt đầu
         while self.model_yolo is None and self.is_running:
-            print("Đang chờ Model YOLO...")
             time.sleep(1)
 
         while self.is_running:
-            success, img = cap.read()
-            if not success: 
-                print("❌ Mất kết nối Camera! Đang thử kết nối lại...")
+            # Lấy URL hiện tại theo index (Phải đảm bảo đã khai báo trong __init__)
+            rtsp_url = self.camera_urls[self.current_camera_index]
+            self.cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            
+            if not self.cap.isOpened():
+                print(f"❌ Không thể mở: {rtsp_url}. Thử lại sau 2s...")
                 time.sleep(2)
-                cap = cv2.VideoCapture(rtsp_url) # Thử kết nối lại
                 continue
+            
+            print(f"✅ Đã kết nối với Camera {self.current_camera_index}")
 
-            # img = cv2.flip(img, 0)
-            # ... (Phần code xử lý bên dưới giữ nguyên) ...
-            
-            # --- YOLO TRACKING ---
-            results = self.model_yolo.track(img, persist=True, verbose=False, classes=[0])
-            
-            if results and results[0].boxes:
-                keypoints_all = results[0].keypoints.data.cpu().numpy() if results[0].keypoints else []
+            while self.is_running:
+                success, img = self.cap.read()
                 
-                for i, box in enumerate(results[0].boxes):
-                    track_id = int(box.id[0]) if box.id is not None else -1
-                    x1, y1, x2, y2 = map(int, box.xyxy[0])
-                    center = (int((x1+x2)/2), int((y1+y2)/2))
+                if not success: 
+                    print("⚠️ Đang kết nối lại hoặc chuyển camera...")
+                    break # Thoát vòng lặp con để vòng lặp cha khởi tạo lại cap
 
-                    # 1. Xác định danh tính
-                    person_name = self.verified_tracks.get(track_id, "Dang xac minh...")
-                    if track_id not in self.verified_tracks:
-                        for face in self.shared_faces:
-                            if self.check_overlap([x1, y1, x2, y2], face['box']):
-                                person_name = face['name']
-                                self.verified_tracks[track_id] = person_name
-                                break
+                # --- BẮT ĐẦU XỬ LÝ AI ---
+                results = self.model_yolo.track(img, persist=True, verbose=False, classes=[0])
+                
+                if results and results[0].boxes:
+                    keypoints_all = results[0].keypoints.data.cpu().numpy() if results[0].keypoints else []
                     
-                    is_family = (person_name != "Unknown" and person_name != "Dang xac minh...")
+                    for i, box in enumerate(results[0].boxes):
+                        track_id = int(box.id[0]) if box.id is not None else -1
+                        x1, y1, x2, y2 = map(int, box.xyxy[0])
+                        center = (int((x1+x2)/2), int((y1+y2)/2))
 
-                    # 2. Phân tích hành vi (Pose)
-                    kpts = keypoints_all[i] if len(keypoints_all) > i else None
-                    action_text, action_color = self.analyze_pose_action(kpts, [x1, y1, x2, y2])
+                        person_name = self.verified_tracks.get(track_id, "Dang xac minh...")
+                        if track_id not in self.verified_tracks:
+                            for face in self.shared_faces:
+                                if self.check_overlap([x1, y1, x2, y2], face['box']):
+                                    person_name = face['name']
+                                    self.verified_tracks[track_id] = person_name
+                                    break
+                        
+                        is_family = (person_name != "Unknown" and person_name != "Dang xac minh...")
+                        kpts = keypoints_all[i] if len(keypoints_all) > i else None
+                        action_text, action_color = self.analyze_pose_action(kpts, [x1, y1, x2, y2])
 
-                    # 3. Logic Cảnh báo
-                    in_zone = self.check_danger_zone(center, DANGER_ZONE)
-                    box_color = (0, 255, 0) # Xanh
-                    info_text = f"ID:{track_id} | {person_name}"
+                        in_zone = self.check_danger_zone(center, DANGER_ZONE)
+                        box_color = (0, 255, 0)
+                        info_text = f"ID:{track_id} | {person_name}"
 
-                    if in_zone:
-                        if is_family:
-                            box_color = (255, 255, 0) # Vàng
-                        else:
-                            box_color = (0, 0, 255) # Đỏ
-                            info_text = f"WARNING! {person_name}"
-                            
-                            if action_text == "FALL DETECTED!" or person_name == "Unknown":
-                                # Phát tiếng kêu (Chạy luồng riêng để ko lag)
+                        if in_zone:
+                            if not is_family:
+                                box_color = (0, 0, 255)
+                                info_text = f"WARNING! {person_name}"
                                 threading.Thread(target=winsound.Beep, args=(2000, 200)).start()
-                                
-                                # Gửi cảnh báo (10s/lần)
                                 if time.time() - self.last_alert_time > DELAY_BAO_DONG:
                                     self.trigger_alert(img)
+                            else:
+                                box_color = (255, 255, 0)
 
-                    # 4. Vẽ lên hình
-                    cv2.rectangle(img, (x1, y1), (x2, y2), box_color, 2)
-                    cv2.putText(img, info_text, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, box_color, 2)
-                    if action_text != "Normal":
-                        cv2.putText(img, action_text, (x1, y1-35), cv2.FONT_HERSHEY_SIMPLEX, 0.8, action_color, 3)
-                    
-                    if kpts is not None:
-                        self.draw_skeleton(img, kpts)
+                        # Vẽ khung và thông tin AI
+                        cv2.rectangle(img, (x1, y1), (x2, y2), box_color, 2)
+                        cv2.putText(img, info_text, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, box_color, 2)
+                        
+                        if action_text != "Normal":
+                            cv2.putText(img, action_text, (x1, y1-35), cv2.FONT_HERSHEY_SIMPLEX, 0.8, action_color, 3)
+                        
+                        if kpts is not None:
+                            self.draw_skeleton(img, kpts)
 
-            # Vẽ vùng nguy hiểm
-            cv2.rectangle(img, (DANGER_ZONE[0], DANGER_ZONE[1]), (DANGER_ZONE[2], DANGER_ZONE[3]), (0, 165, 255), 2)
-            cv2.putText(img, "DANGER ZONE", (DANGER_ZONE[0], DANGER_ZONE[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
+                # Vẽ vùng nguy hiểm (Đầy đủ cả khung và chữ)
+                cv2.rectangle(img, (DANGER_ZONE[0], DANGER_ZONE[1]), (DANGER_ZONE[2], DANGER_ZONE[3]), (0, 165, 255), 2)
+                cv2.putText(img, "DANGER ZONE", (DANGER_ZONE[0], DANGER_ZONE[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
 
-            # Cập nhật frame cho View
-            with self.lock:
-                self.shared_frame = img.copy()
-            
-            time.sleep(0.01)
+                # Cập nhật frame để hiển thị lên Kivy
+                with self.lock:
+                    self.shared_frame = img.copy()
+                
+                time.sleep(0.01)
 
-        cap.release()
+            # Giải phóng tài nguyên trước khi vòng lặp cha chạy lần tiếp theo
+            self.cap.release()
 
     # --- CÁC HÀM BỔ TRỢ (HELPER) TỪ FILE CŨ ---
     def trigger_alert(self, img):

@@ -240,3 +240,12 @@ class SecurityScreen(Screen):
                     self.update_chat_log(f"Lỗi: {res.get('message')}", "FF0000")
             
             threading.Thread(target=run_upload, daemon=True).start()
+    
+    # --- SỬA LẠI HÀM NÀY ---
+    def change_camera_source(self):
+        # Thay self.logic bằng self.security_sys
+        if self.security_sys:
+            self.security_sys.switch_camera()
+            
+            # Cập nhật thông báo lên giao diện
+            self.update_chat_log("Hệ thống: Đang chuyển nguồn Camera...", color="ffff00")
