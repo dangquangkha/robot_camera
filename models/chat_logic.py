@@ -5,6 +5,7 @@ import speech_recognition as sr
 from openai import OpenAI
 from datetime import datetime
 from dotenv import load_dotenv
+import io  # <--- THƯ VIỆN QUAN TRỌNG ĐỂ DÙNG RAM
 # 1. Load biến môi trường từ file .env
 load_dotenv()
 
@@ -35,7 +36,7 @@ class VoiceAssistant:
             self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
             try:
                 # Nghe tối đa 5 giây
-                audio = self.recognizer.listen(source, timeout=55, phrase_time_limit=150)
+                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
                 text = self.recognizer.recognize_google(audio, language="vi-VN")
                 return text
             except sr.WaitTimeoutError:
@@ -63,48 +64,41 @@ class VoiceAssistant:
         except Exception as e:
             return f"Lỗi kết nối AI: {e}"
 
-    def text_to_speech(self, text):
-        """Chuyển văn bản thành giọng nói (OpenAI TTS)"""
-        try:
-            filename = "response_voice.mp3"
-            # --- SỬA ĐOẠN NÀY ---
-            # Luôn dừng và giải phóng file cũ trước khi làm bất cứ gì
-            # 1. Dừng âm thanh cũ và giải phóng file
-            try:
-                if pygame.mixer.music.get_busy():
-                    pygame.mixer.music.stop()
-                pygame.mixer.music.unload()
-            except Exception:
-                pass
-            # 2. Xóa file cũ để đảm bảo không bị cache
-            if os.path.exists(filename):
-                try:
-                    os.remove(filename)
-                except PermissionError:
-                    print("Không thể xóa file cũ, đang dùng tên tạm...")
-                    filename = f"response_{int(time.time())}.mp3"
+    def stop_speaking(self):
+        """Hàm ngắt lời AI ngay lập tức (Dùng khi người dùng bấm nút hoặc ngắt lời)"""
+        if pygame.mixer.music.get_busy():
+            pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
 
-            # 3. Gọi API OpenAI và lưu file
-            with client.audio.speech.with_streaming_response.create(
-                model="tts-1", 
-                voice="alloy", 
+    def text_to_speech(self, text):
+        """Chuyển văn bản thành giọng nói dùng RAM (BytesIO)"""
+        try:
+            # 1. Ngắt âm thanh cũ nếu đang phát dở
+            self.stop_speaking()
+
+            # 2. Gọi API OpenAI (Không dùng stream_to_file nữa)
+            # Chúng ta lấy raw content (dữ liệu nhị phân) trực tiếp
+            response = client.audio.speech.create(
+                model="tts-1",
+                voice="alloy",
                 input=text,
                 response_format="mp3"
-            ) as response:
-                response.stream_to_file(filename)
-            
-            time.sleep(0.2)  # Đợi file được ghi xong
-            # Phát âm thanh
-            pygame.mixer.music.load(filename)
+            )
+
+            # 3. Tạo luồng dữ liệu trong RAM (Memory Buffer)
+            # io.BytesIO hoạt động y hệt một file, nhưng nằm trên RAM
+            byte_stream = io.BytesIO(response.content)
+
+            # 4. Load trực tiếp từ RAM vào Pygame
+            pygame.mixer.music.load(byte_stream)
             pygame.mixer.music.play()
-            
-            # Giữ chương trình không chạy tiếp cho đến khi nói xong
+
+            # 5. Chờ phát xong
             while pygame.mixer.music.get_busy():
-                pygame.time.Clock().tick(30) # Tăng tick lên 30 để check mượt hơn
-            
-            # --- [SỬA ĐỔI 3] Đợi thêm 1 chút sau khi get_busy trả về False ---
-            # Vì đôi khi Pygame báo xong nhưng loa vẫn còn dư âm
-            time.sleep(0.2) 
-                
+                pygame.time.Clock().tick(30)
+
+            # Lưu ý: Khi hàm này kết thúc, biến byte_stream sẽ tự được giải phóng khỏi RAM
+            # Không cần lệnh xóa file hay os.remove
+
         except Exception as e:
             print(f"Lỗi TTS: {e}")
