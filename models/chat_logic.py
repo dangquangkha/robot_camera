@@ -1,4 +1,5 @@
 import os
+import time  # <--- Cần import time
 import pygame
 import speech_recognition as sr
 from openai import OpenAI
@@ -19,7 +20,13 @@ client = OpenAI(api_key=api_key)
 class VoiceAssistant:
     def __init__(self):
         self.recognizer = sr.Recognizer()
-        pygame.mixer.init()
+# --- [SỬA ĐỔI 1] Cấu hình Pygame Mixer chuẩn hơn ---
+        # frequency=24000 khớp với chuẩn model tts-1 của OpenAI để tránh bị méo/mất tiếng
+        # buffer=4096 giúp giảm độ trễ và tránh ngắt quãng
+        try:
+            pygame.mixer.init(frequency=24000, buffer=4096)
+        except:
+            pygame.mixer.init() # Fallback nếu lỗi
 
     def listen(self):
         """Lắng nghe giọng nói và chuyển thành văn bản"""
@@ -48,8 +55,8 @@ class VoiceAssistant:
                     {"role": "system", "content": system_context},
                     {"role": "user", "content": user_text}
                 ],
-                temperature=0.6,
-                max_tokens=90  # token ≠ từ, nhưng giúp hạn chế lan man
+                temperature=0.7,
+                max_tokens=200  # token ≠ từ, nhưng giúp hạn chế lan man
 
             )
             return response.choices[0].message.content
@@ -62,31 +69,42 @@ class VoiceAssistant:
             filename = "response_voice.mp3"
             # --- SỬA ĐOẠN NÀY ---
             # Luôn dừng và giải phóng file cũ trước khi làm bất cứ gì
+            # 1. Dừng âm thanh cũ và giải phóng file
             try:
-                pygame.mixer.music.stop()
-                pygame.mixer.music.unload() # Quan trọng: Buộc Pygame nhả file ra
+                if pygame.mixer.music.get_busy():
+                    pygame.mixer.music.stop()
+                pygame.mixer.music.unload()
             except Exception:
                 pass
-            # --------------------
-            
-            # Xóa file cũ nếu tồn tại (để tránh lỗi permission)
+            # 2. Xóa file cũ để đảm bảo không bị cache
             if os.path.exists(filename):
-                try: os.remove(filename)
-                except: pass
+                try:
+                    os.remove(filename)
+                except PermissionError:
+                    print("Không thể xóa file cũ, đang dùng tên tạm...")
+                    filename = f"response_{int(time.time())}.mp3"
 
-            # Gọi API TTS
+            # 3. Gọi API OpenAI và lưu file
             with client.audio.speech.with_streaming_response.create(
-                model="tts-1", voice="alloy", input=text
+                model="tts-1", 
+                voice="alloy", 
+                input=text,
+                response_format="mp3"
             ) as response:
                 response.stream_to_file(filename)
-
+            
+            time.sleep(0.2)  # Đợi file được ghi xong
             # Phát âm thanh
             pygame.mixer.music.load(filename)
             pygame.mixer.music.play()
             
-            # Chờ nói xong mới thôi (hoặc có thể bỏ dòng này để nói non-blocking)
+            # Giữ chương trình không chạy tiếp cho đến khi nói xong
             while pygame.mixer.music.get_busy():
-                pygame.time.Clock().tick(10)
+                pygame.time.Clock().tick(30) # Tăng tick lên 30 để check mượt hơn
+            
+            # --- [SỬA ĐỔI 3] Đợi thêm 1 chút sau khi get_busy trả về False ---
+            # Vì đôi khi Pygame báo xong nhưng loa vẫn còn dư âm
+            time.sleep(0.2) 
                 
         except Exception as e:
             print(f"Lỗi TTS: {e}")
