@@ -50,7 +50,7 @@ class SecuritySystem:
         self.current_camera_index = 0
         self.camera_configs = {
             # Đổi dấu "-" thành ":" để chuẩn hóa
-            "CAM_01": {"mac": "1c:4d:89:d8:c0:fb", "ip": "192.168.0.3", "user": "admin", "pass": "L2D1833A"}, 
+            "CAM_01": {"mac": "1c:4d:89:d8:c0:FB", "ip": "192.168.0.3", "user": "admin", "pass": "L2D1833A"}, 
             "CAM_02": {"mac": "1c:4d:89:d8:c5:be", "ip": "192.168.1.222", "user": "admin", "pass": "L2D1833A"}
         }
         self.camera_urls = [
