@@ -50,11 +50,11 @@ class SecuritySystem:
         self.current_camera_index = 0
         self.camera_configs = {
             # Đổi dấu "-" thành ":" để chuẩn hóa
-            "CAM_01": {"mac": "1c:4d:89:d8:c0:fb", "ip": "192.168.1.176", "user": "admin", "pass": "KHAi2692004"}, 
+            "CAM_01": {"mac": "1c:4d:89:d8:c0:fb", "ip": "192.168.0.5", "user": "admin", "pass": "L2D1833A"}, 
             "CAM_02": {"mac": "1c:4d:89:d8:c5:be", "ip": "192.168.1.222", "user": "admin", "pass": "KHAi2692004"}
         }
         self.camera_urls = [
-        "rtsp://admin:KHAi2692004@192.168.1.176:554/cam/realmonitor?channel=1&subtype=1",
+        "rtsp://admin:L2D1833A@192.168.0.5:554/cam/realmonitor?channel=1&subtype=1",
         "rtsp://admin:KHAi2692004@192.168.1.222:554/cam/realmonitor?channel=1&subtype=1" # Camera thứ 2
         ]
         self.cap = None
