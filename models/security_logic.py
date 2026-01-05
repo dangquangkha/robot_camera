@@ -50,14 +50,19 @@ class SecuritySystem:
         self.current_camera_index = 0
         self.camera_configs = {
             # Đổi dấu "-" thành ":" để chuẩn hóa
-            "CAM_01": {"mac": "1c:4d:89:d8:c0:FB", "ip": "192.168.0.3", "user": "admin", "pass": "L2D1833A"}, 
-            "CAM_02": {"mac": "1c:4d:89:d8:c5:be", "ip": "192.168.1.222", "user": "admin", "pass": "L2D1833A"}
+            "CAM_01": {"mac": "1c:4d:89:d8:c0:FB", "ip": "192.168.0.4", "user": "admin", "pass": "L2D1833A"}, 
+            "CAM_02": {"mac": "1c:4d:89:d8:c5:BE", "ip": "192.168.1.222", "user": "admin", "pass": "L2D1833A"}
         }
         self.camera_urls = [
-        "rtsp://admin:L2D1833A@192.168.0.3:554/cam/realmonitor?channel=1&subtype=1",
+        "rtsp://admin:L2D1833A@192.168.0.4:554/cam/realmonitor?channel=1&subtype=1",
         "rtsp://admin:L2D1833A@192.168.1.222:554/cam/realmonitor?channel=1&subtype=1" # Camera thứ 2
         ]
         self.cap = None
+        # --- [THÊM DÒNG NÀY] ---
+        # Tự động quét lại IP theo MAC ngay khi bật app
+        print("--- [INIT] Đang tự động dò tìm Camera trong mạng LAN... ---")
+        self.update_ips_by_mac()
+        # -----------------------
 
     def load_resources(self):
         """Hàm này chạy ngầm để load Model AI"""
@@ -178,7 +183,7 @@ class SecuritySystem:
     def update_ips_by_mac(self):
         """Quét mạng để tìm IP mới nhất dựa trên địa chỉ MAC đã biết"""
         print("--- 🔍 Đang quét mạng để cập nhật IP theo MAC... ---")
-
+        os.system("ping -n 1 192.168.1.255 >nul 2>&1")
         # Chạy lệnh hệ thống để lấy bảng ARP
         with os.popen('arp -a') as f:
             arp_data = f.read().lower()
